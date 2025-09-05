@@ -1,37 +1,32 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme/theme-provider";
-import { AppLayout } from "@/components/layout/AppLayout";
-import Dashboard from "./pages/Dashboard";
-import Clientes from "./pages/Clientes";
-import Projetos from "./pages/Projetos";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import Login from "@/pages/Login"
+import Dashboard from "@/pages/Dashboard"
+import Clientes from "@/pages/Clientes"
+import Projetos from "@/pages/Projetos"
+import AppLayout from "@/components/layout/AppLayout"
 
-const queryClient = new QueryClient();
+export default function App() {
+  const isAuth = localStorage.getItem("auth") === "true"
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="freelancehub-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/clientes" element={<Clientes />} />
-              <Route path="/projetos" element={<Projetos />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Login sem layout */}
+        <Route path="/login" element={<Login />} />
 
-export default App;
+        {/* Rotas protegidas com layout */}
+        <Route
+          path="/*"
+          element={isAuth ? <AppLayout /> : <Navigate to="/login" replace />}
+        >
+          <Route path="" element={<Dashboard />} />
+          <Route path="clientes" element={<Clientes />} />
+          <Route path="projetos" element={<Projetos />} />
+        </Route>
+
+        {/* Fallback para login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}

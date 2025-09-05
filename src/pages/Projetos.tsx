@@ -1,204 +1,214 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit, Trash2, User, Calendar, DollarSign, FolderOpen } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Briefcase, Users, DollarSign } from "lucide-react";
 
-// Mock data - will be replaced with real data from Supabase
-const mockProjetos = [
-  {
-    id: 1,
-    descricao: "Website E-commerce Completo",
-    cliente: "João Silva",
-    valor: 8500,
-    status: "em-andamento",
-    dataInicio: "2024-04-15",
-    prazo: "2024-06-15",
-  },
-  {
-    id: 2,
-    descricao: "Aplicativo Mobile React Native",
-    cliente: "Maria Santos",
-    valor: 12000,
-    status: "em-andamento",
-    dataInicio: "2024-05-01",
-    prazo: "2024-07-30",
-  },
-  {
-    id: 3,
-    descricao: "Redesign de Logo e Identidade Visual",
-    cliente: "Tech Corp",
-    valor: 2500,
-    status: "concluido",
-    dataInicio: "2024-03-10",
-    prazo: "2024-04-10",
-  },
-  {
-    id: 4,
-    descricao: "Sistema de Gestão Interno",
-    cliente: "StartupXYZ",
-    valor: 15000,
-    status: "em-andamento",
-    dataInicio: "2024-05-15",
-    prazo: "2024-08-15",
-  },
-];
+interface Projeto {
+  id: number;
+  nome: string;
+  cliente: string;
+  status: string;
+  valor: number;
+}
 
-const statusConfig = {
-  "em-andamento": {
-    label: "Em Andamento",
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  },
-  "concluido": {
-    label: "Concluído",
-    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  },
-  "pausado": {
-    label: "Pausado",
-    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  },
-};
+export default function Projetos() {
+  const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [nome, setNome] = useState("");
+  const [cliente, setCliente] = useState("");
+  const [status, setStatus] = useState("Em andamento");
+  const [valor, setValor] = useState("");
 
-const Projetos = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("todos");
-  const [projetos] = useState(mockProjetos);
+  const adicionarProjeto = () => {
+    if (!nome || !cliente || !valor) return;
 
-  const filteredProjetos = projetos.filter(projeto => {
-    const matchSearch = projeto.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       projeto.cliente.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === "todos" || projeto.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+    const novoProjeto: Projeto = {
+      id: Date.now(),
+      nome,
+      cliente,
+      status,
+      valor: Number(valor),
+    };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+    setProjetos([...projetos, novoProjeto]);
+
+    // limpar campos
+    setNome("");
+    setCliente("");
+    setStatus("Em andamento");
+    setValor("");
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  // Resumos
+  const totalProjetos = projetos.length;
+  const emAndamento = projetos.filter((p) => p.status === "Em andamento").length;
+  const receitaTotal = projetos.reduce((acc, p) => acc + p.valor, 0);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Projetos</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie todos os seus projetos freelance
-          </p>
-        </div>
-        <Button className="gradient-primary shadow-[var(--shadow-button)] hover:shadow-elegant transition-smooth">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Projeto
-        </Button>
+    <div className="space-y-8">
+      {/* Título */}
+      <div>
+        <h1 className="text-3xl font-bold">Projetos</h1>
+        <p className="text-muted-foreground">
+          Gerencie os projetos em andamento e concluídos
+        </p>
       </div>
 
-      <Card className="card-elegant">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <CardTitle>Lista de Projetos</CardTitle>
-            <div className="flex gap-3 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-72">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar projetos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="em-andamento">Em Andamento</SelectItem>
-                  <SelectItem value="concluido">Concluído</SelectItem>
-                  <SelectItem value="pausado">Pausado</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Cards de resumo */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center gap-4 p-6">
+            <Briefcase className="h-10 w-10 text-primary" />
+            <div>
+              <p className="text-sm text-muted-foreground">Projetos Totais</p>
+              <p className="text-2xl font-bold">{totalProjetos}</p>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {filteredProjetos.map((projeto) => (
-              <Card key={projeto.id} className="hover:shadow-card transition-smooth border border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">{projeto.descricao}</h3>
-                        <Badge className={statusConfig[projeto.status as keyof typeof statusConfig].color}>
-                          {statusConfig[projeto.status as keyof typeof statusConfig].label}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          <span>{projeto.cliente}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4" />
-                          <span className="font-medium text-green-600">{formatCurrency(projeto.valor)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          <span>Prazo: {formatDate(projeto.prazo)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground transition-smooth">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="hover:bg-destructive hover:text-destructive-foreground transition-smooth">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-smooth"
-                      style={{ 
-                        width: projeto.status === "concluido" ? "100%" : "65%" 
-                      }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {projeto.status === "concluido" ? "Projeto concluído" : "Progresso estimado"}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {filteredProjetos.length === 0 && (
-            <div className="text-center py-12">
-              <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">Nenhum projeto encontrado</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || statusFilter !== "todos" 
-                  ? "Tente ajustar seus filtros de busca" 
-                  : "Comece adicionando seu primeiro projeto"
-                }
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-6">
+            <Users className="h-10 w-10 text-primary" />
+            <div>
+              <p className="text-sm text-muted-foreground">Em Andamento</p>
+              <p className="text-2xl font-bold">{emAndamento}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-6">
+            <DollarSign className="h-10 w-10 text-primary" />
+            <div>
+              <p className="text-sm text-muted-foreground">Receita Total</p>
+              <p className="text-2xl font-bold">
+                R$ {receitaTotal.toLocaleString("pt-BR")}
               </p>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Formulário */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Adicionar Projeto</CardTitle>
+          <CardDescription>
+            Preencha os dados do novo projeto
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Projeto</Label>
+              <Input
+                id="nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder="Digite o nome do projeto"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cliente">Cliente</Label>
+              <Input
+                id="cliente"
+                value={cliente}
+                onChange={(e) => setCliente(e.target.value)}
+                placeholder="Digite o nome do cliente"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option>Em andamento</option>
+                <option>Concluído</option>
+                <option>Pausado</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="valor">Valor (R$)</Label>
+              <Input
+                id="valor"
+                type="number"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder="Digite o valor"
+              />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={adicionarProjeto} className="w-full md:w-auto">
+            Adicionar
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Lista de projetos */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Projetos</CardTitle>
+          <CardDescription>
+            Confira os projetos cadastrados abaixo
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {projetos.length === 0 ? (
+            <p className="text-muted-foreground text-center py-6">
+              Nenhum projeto cadastrado ainda.
+            </p>
+          ) : (
+            <table className="w-full border-collapse rounded-md overflow-hidden">
+              <thead>
+                <tr className="bg-muted text-left">
+                  <th className="p-3">Projeto</th>
+                  <th className="p-3">Cliente</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projetos.map((projeto, index) => (
+                  <tr
+                    key={projeto.id}
+                    className={index % 2 === 0 ? "bg-background" : "bg-muted/30"}
+                  >
+                    <td className="p-3">{projeto.nome}</td>
+                    <td className="p-3">{projeto.cliente}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          projeto.status === "Concluído"
+                            ? "bg-green-100 text-green-700 dark:bg-green-700/20 dark:text-green-400"
+                            : projeto.status === "Pausado"
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-700/20 dark:text-yellow-400"
+                            : "bg-blue-100 text-blue-700 dark:bg-blue-700/20 dark:text-blue-400"
+                        }`}
+                      >
+                        {projeto.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      R$ {projeto.valor.toLocaleString("pt-BR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default Projetos;
+}

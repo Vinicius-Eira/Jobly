@@ -1,87 +1,83 @@
-import { NavLink, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  FolderOpen,
-  Menu,
-} from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom"
+import { LayoutDashboard, Users, FolderKanban, LogOut, Sun, Moon } from "lucide-react"
+import { useTheme } from "@/components/theme/theme-provider"
+import { Button } from "@/components/ui/button"
+import clsx from "clsx"
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
+const nav = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/projetos", label: "Projetos", icon: FolderKanban },
+]
 
-const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Projetos", url: "/projetos", icon: FolderOpen },
-];
+export default function AppSidebar() {
+  const { theme, setTheme } = useTheme()
+  const navigate = useNavigate()
 
-export function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
-  const location = useLocation();
-  const currentPath = location.pathname;
-
-  const isActive = (path: string) => {
-    if (path === "/") return currentPath === "/";
-    return currentPath.startsWith(path);
-  };
-
-  const getNavCls = (active: boolean) =>
-    active 
-      ? "bg-primary text-primary-foreground font-medium shadow-[var(--shadow-button)]" 
-      : "hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-smooth";
+  const handleLogout = () => {
+    localStorage.removeItem("auth")
+    navigate("/login", { replace: true })
+  }
 
   return (
-    <Sidebar
-      className={`${collapsed ? "w-16" : "w-64"} transition-smooth border-r border-border/50`}
-      collapsible="icon"
-    >
-      <SidebarContent className="bg-card/50 backdrop-blur-sm">
-        <div className="p-4">
-          <div className="flex items-center gap-3">
-            {!collapsed && (
-              <div className="gradient-primary bg-clip-text text-transparent">
-                <h2 className="text-lg font-bold">FreelanceHub</h2>
-              </div>
-            )}
-          </div>
+    <aside className="hidden lg:flex h-screen sticky top-0 flex-col border-r bg-card w-[260px]">
+      {/* Logo / Header */}
+      <div className="px-5 py-5 border-b">
+        <div className="text-xl font-extrabold tracking-tight">
+          Freelance<span className="text-primary">Hub</span>
+        </div>
+        <p className="text-sm text-muted-foreground">Organize seu negócio</p>
+      </div>
+
+      {/* Navegação */}
+      <nav className="px-2 py-4 flex-1 space-y-1">
+        {nav.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              clsx(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                "hover:bg-accent hover:text-accent-foreground transition-colors",
+                isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground"
+              )
+            }
+            end={to === "/"}
+          >
+            <Icon size={18} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Footer / Ações */}
+      <div className="border-t px-4 py-4 flex flex-col gap-3">
+        {/* Botões alinhados */}
+        <div className="flex justify-center gap-6">
+          {/* Botão de tema */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          >
+            {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+          </Button>
+
+          {/* Sair */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut size={20} />
+          </Button>
         </div>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className={`${collapsed ? 'sr-only' : ''} text-muted-foreground text-xs uppercase tracking-wider`}>
-            Navegação
-          </SidebarGroupLabel>
-
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end={item.url === "/"} 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-smooth ${getNavCls(isActive(item.url))}`}
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!collapsed && <span className="font-medium">{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
+        <p className="text-xs text-center text-muted-foreground">
+          © {new Date().getFullYear()} FreelanceHub
+        </p>
+      </div>
+    </aside>
+  )
 }
